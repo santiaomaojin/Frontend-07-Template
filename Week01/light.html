@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div class="green"></div>
+  <div class="yellow"></div>
+  <div class="red"></div>
+  <button id="next">next</button>
+</body>
+<style>
+  div {
+    display: inline-block;
+    margin: 20px;
+    width: 100px;
+    height: 100px;
+    background-color: gray;
+    border-radius: 50%;
+  }
+  .green.light {
+    background-color: green;
+  }
+  .yellow.light {
+    background-color: yellow;
+  }
+  .red.light {
+    background-color: red;
+  }
+</style>
+<script>
+function clear () {
+  let lights = document.getElementsByTagName('div')
+  Array.from(lights).forEach((item) => {
+    item.classList.remove('light')
+  })
+}
+function green () {
+  clear()
+  document.getElementsByClassName('green')[0].classList.add('light')
+}
+function yellow () {
+  clear()
+  document.getElementsByClassName('yellow')[0].classList.add('light')
+}
+function red () {
+  clear()
+  document.getElementsByClassName('red')[0].classList.add('light')
+}
+function go () {
+  green()
+  setTimeout(() => {
+    yellow()
+    setTimeout(() => {
+      red()
+      setTimeout(() => {
+        go()
+      }, 500)
+    }, 200)
+  }, 1000)
+}
+// promise
+function sleep (t) {
+  return new Promise((resolve, reject) => {
+    setTimeout(resolve, t)
+  })
+}
+function go1 () {
+  green()
+  sleep(1000).then(() => {
+    yellow()
+    return sleep(200)
+  }).then(() => {
+    red()
+    return sleep(500)
+  }).then(go1)
+
+}
+// async/await
+async function go3 () {
+  while (true) {
+    green()
+    await sleep(1000)
+    yellow()
+    await sleep(200)
+    red()
+    await sleep(500)
+  }
+}
+
+function happen (element, eventName) {
+  return new Promise((resolve) => {
+    element.addEventListener(eventName, resolve, {once: true})
+  })
+}
+async function go4 () {
+  while (true) {
+    green()
+    await happen(document.getElementById('next'), 'click')
+    yellow()
+    await happen(document.getElementById('next'), 'click')
+    red()
+    await happen(document.getElementById('next'), 'click')
+  }
+}
+// generator 模拟async/await
+function* goGenerator () {
+  while (true) {
+    green()
+    yield sleep(1000)
+    yellow()
+    yield sleep(200)
+    red()
+    yield sleep(500)
+  }
+}
+function run (interator) {
+  let {done, value} = interator.next()
+  if (done) {
+    return
+  }  
+  if (value) {
+    value.then(() => {
+      run(interator)
+    })
+  }
+}
+// 组合
+function compose (generator) {
+  return function () {
+    return run(generator())
+  }
+}
+const go5 = compose(goGenerator)
+// async generator 异步generator
+async function* counter () {
+  let i = 0
+  while (true) {
+    await sleep(1000)
+    yield i++
+  }
+}
+(async function() {
+  for await (let i of counter()) {
+    console.log(i)
+  }
+})()
+</script>
+</html>

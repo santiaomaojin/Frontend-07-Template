@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div id="board">
+  </div>
+</body>
+<style>
+  .cell {
+    width: 100px;
+    height: 100px;
+    background-color: green;
+    display: inline-block;
+    vertical-align: middle;
+    border: 1px solid white;
+    line-height: 100px;
+    font-size: 50px;
+    text-align: center;
+  }
+</style>
+<script>
+let pattern = [
+  [0, 0, 0],
+  [0, 0, 0],
+  [0, 0, 0]
+]
+// 
+let color = 1
+function show() {
+  let board = document.getElementById('board')
+  board.innerHTML = ''
+  for (let i = 0; i < pattern.length; i++) {
+    for (let j = 0; j < pattern[i].length; j++) {
+      let cell = document.createElement('div')
+      cell.classList.add('cell')
+      cell.innerHTML = pattern[i][j] === 2 ? '❌' :
+        pattern[i][j] === 1 ? '⭕' : ''
+      cell.addEventListener('click', () => useMove(i, j))
+      board.appendChild(cell)
+    }
+    board.append(document.createElement('br'))
+  }
+}
+function useMove (i, j) {
+  pattern[i][j] = color
+  if (check(pattern, color)) {
+    alert(color === 2 ? '❌  is winner' : '⭕ is winner')
+  }
+  color = 3 - color
+  show()
+  computerMove()
+}
+function computerMove () {
+  let choice = bestChoice(pattern, color)
+  if (choice.point) {
+    pattern[choice.point[0]][choice.point[1]] = color
+  }
+  if (check(pattern, color)) {
+    alert(color === 2 ? '❌  is winner' : '⭕ is winner')
+  }
+  color = 3 - color
+  show()
+}
+function move (i ,j) {
+  pattern[i][j] = color
+  if (check(pattern, color)) {
+    alert(color === 2 ? '❌  is winner' : '⭕ is winner')
+  }
+  color = 3 - color
+  console.log(bestChoice(pattern, color))
+  // if (willWin(pattern, color)) {
+  //   alert(color === 2 ? '❌  will win' : '⭕  will win')
+  // }
+
+  show()
+}
+function check (pattern, color) {
+  // 3行
+  for (let i = 0; i < 3; i++) {
+    let win = true
+    for (let j = 0; j < 3; j++) {
+      if (pattern[i][j] !== color) {
+        win = false
+      }
+    }
+    if (win) {
+      return true
+    }
+  }
+  // 3列
+  for (let i = 0; i < 3; i++) {
+    let win = true
+    for (let j = 0; j < 3; j++) {
+      if (pattern[j][i] !== color) {
+        win = false
+      }
+    }
+    if (win) {
+      return true
+    }
+  }
+  // i = j
+  {
+    let win = true
+    for (let i = 0; i < 3; i++) {
+      if (pattern[i][i] !== color) {
+        win = false
+      }
+    }
+    if (win) {
+      return true
+    }
+  }
+  // i + j = 2
+  {
+    let win = true
+    for (let i = 0; i < 3; i++) {
+      if (pattern[i][2 - i] !== color) {
+        win = false
+      }
+    }
+    if (win) {
+      return true
+    }
+  }
+  return false
+}
+function willWin (pattern, color) {
+  for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (pattern[i][j]) {
+        continue
+      }
+      let tmp = clone(pattern)
+      tmp[i][j] = color
+      if (check(tmp, color)) {
+        return [i, j]
+      }
+    }
+  }
+  return null
+}
+function clone (pattern) {
+  return JSON.parse(JSON.stringify(pattern))
+}
+/* 
+  第一层： 我要赢
+  第二层： 别输
+  第三层：别人怎么走，自己都不输
+  对方最好的策略就是我方最差的策略
+  return {point: [], result: 1/0/-1}
+ */
+function bestChoice (pattern, color) {
+  if (p = willWin(pattern, color)) {
+    return {
+      point: p,
+      result: 1
+    }
+  }
+  let result = -2
+  let point = null
+  outer: for (let i = 0; i < 3; i++) {
+    for (let j = 0; j < 3; j++) {
+      if (pattern[i][j]) {
+        continue
+      }
+      let tmp = clone(pattern)
+      // 我方下棋位置
+      tmp[i][j] = color
+      // 找到对方最差的点，就是我方最好的点
+      let r = bestChoice(tmp, 3 - color).result
+      if (-r > result) {
+        result = -r
+        point = [i, j]
+      }
+      if (result === 1) {
+        break outer
+      }
+    }
+  }
+  return {
+    point,
+    result: point ? result : 0
+  }
+}
+show()
+</script>
+</html>

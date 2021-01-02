@@ -50,7 +50,7 @@ function find (source, pattern) {
   }
   
   for(let j = 0; j < source.length - lastIndex && pattern[pattern.length - j]; j++) {
-    if (pattern[pattern.length - j] !== source[source.length - j] && pattern[pattern.length -j] !== 'j') {
+    if (pattern[pattern.length - j] !== source[source.length - j] && pattern[pattern.length -j] !== '?') {
       return false
     }
   }
